@@ -1,4 +1,4 @@
-require "test/unit"
+require "minitest/autorun"
 require 'net/http'
 require 'json'
 
@@ -21,7 +21,7 @@ class DefMe
   end
 end
 
-class TestDefme < Test::Unit::TestCase
+class TestDefme < Minitest::Test
   def setup
     DefMe.build
     DefMe.httpd
@@ -44,7 +44,7 @@ class TestDefme < Test::Unit::TestCase
     assert(res.is_a?(Net::HTTPSuccess))
 
     response = JSON.parse(res.body)
-    assert_equal(response['translation'], "poziom w górę")
-    assert_equal(response['definitions'], ["To progress to the next level of player character stats and abilities, often by acquiring experience points in role-playing games."])
+    assert_equal("poziom wyżej", response['translation'] )
+    assert_equal(["To progress to the next level of player character stats and abilities, often by acquiring experience points in role-playing games."],response['definitions'])
   end
 end

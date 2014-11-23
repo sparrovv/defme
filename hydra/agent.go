@@ -12,10 +12,8 @@ import (
 	"github.com/sparrovv/gotr/googletranslate"
 )
 
-const termIndentation = "   "
-
 // Combined into one struct response from all the services.
-type MultiResponse struct {
+type HydraResponse struct {
 	Translation       string   `json:"translation"`
 	ExtraTranslations []string `json:"extraTranslations"`
 	Definitions       []string `json:"definitions"`
@@ -23,126 +21,122 @@ type MultiResponse struct {
 	Examples          []string `json:"examples"`
 }
 
-func BuildResponse(term string, config configuration.Config, translateTo string, toJSON bool) (formattedResponse string) {
-	ch := make(chan interface{}, 4)
-
-	var group sync.WaitGroup
-	group.Add(cap(ch))
-
-	go func() {
-		defer group.Done()
-
-		defs, err := wordnik.FetchDef(config, term)
-
-		if err != nil {
-			log.Printf("Wordink fetch definition error %v", err)
-		}
-
-		ch <- wordnikDefinitionResult{defs}
-	}()
-
-	go func() {
-		defer group.Done()
-		related, err := wordnik.FetchRelated(config, term)
-		if err != nil {
-			log.Printf("Wordink fetch related error %v", err)
-		}
-		ch <- related
-	}()
-
-	go func() {
-		defer group.Done()
-		phrase, err := googletranslate.Translate("en", translateTo, term)
-		if err != nil {
-			log.Printf("Wordink fetch related error %v", err)
-		}
-		ch <- phrase
-	}()
-
-	go func() {
-		defer group.Done()
-		examples, err := wordnik.FetchExamples(config, term)
-		if err != nil {
-			log.Printf("Wordink fetch examples error %v", err)
-		}
-		ch <- wordnikExamplesResult{examples}
-	}()
-
-	go func() {
-		group.Wait()
-		close(ch)
-	}()
-
-	apiResponses := make([]interface{}, 0)
-	for response := range ch {
-		apiResponses = append(apiResponses, response)
+// Returns JSON or formatted text from all the services
+func BuildResponse(word string, config configuration.Config, translateTo string, toJSON bool) (formattedResponse string) {
+	hydraResponse := HydraResponse{}
+	wordnikAPI := WordinkAPI{word, config}
+	heads := []hydraHead{
+		defHead{&wordnikAPI},
+		examplesHead{&wordnikAPI},
+		synonymsHead{&wordnikAPI},
+		translationHead{translateTo, word},
 	}
 
-	multiResponse := makeMultiResponse(apiResponses)
+	var group sync.WaitGroup
+	group.Add(len(heads))
+
+	for _, h := range heads {
+		go func(head hydraHead) {
+			err := head.Bite(&hydraResponse)
+			if err != nil {
+				log.Printf("Exception: %v", err)
+			}
+			group.Done()
+		}(h)
+	}
+	group.Wait()
 
 	if toJSON {
-		jsonObj, _ := json.Marshal(multiResponse)
-		formattedResponse = string(jsonObj)
+		formattedResponse = hydraResponse.ToJSON()
 	} else {
-		formattedResponse = toSTDOUT(multiResponse)
+		formattedResponse = hydraResponse.ToStdOut()
 	}
 
 	return
 }
 
-type wordnikDefinitionResult struct {
-	phrases []wordnik.Phrase
+// a common interface to all API calls
+type hydraHead interface {
+	Bite(res *HydraResponse) error
 }
 
-type wordnikExamplesResult struct {
-	examples []wordnik.Example
+// google translate call
+type translationHead struct {
+	translateTo, word string
 }
 
-func (p wordnikDefinitionResult) mapTexts() []string {
-	phraseResults := make([]string, 0)
-
-	for _, phrase := range p.phrases {
-		phraseResults = append(phraseResults, phrase.Text)
+func (gt translationHead) Bite(res *HydraResponse) (err error) {
+	phrase, err := googletranslate.Translate("en", gt.translateTo, gt.word)
+	if err != nil {
+		return
 	}
 
-	return phraseResults
+	res.Translation = phrase.Translation
+	res.ExtraTranslations = phrase.ExtraMeanings
+	return
 }
 
-func (p wordnikExamplesResult) mapTexts() []string {
-	phraseResults := make([]string, 0)
+type WordinkAPI struct {
+	word   string
+	config configuration.Config
+}
 
-	for _, example := range p.examples {
-		phraseResults = append(phraseResults, termIndentation+example.Text)
+type defHead struct{ *WordinkAPI }
+type examplesHead struct{ *WordinkAPI }
+type synonymsHead struct{ *WordinkAPI }
+
+func (wordnikHead defHead) Bite(res *HydraResponse) (err error) {
+	defs, err := wordnik.FetchDef(wordnikHead.config, wordnikHead.word)
+	if err != nil {
+		return
 	}
 
-	return phraseResults
-}
-
-func makeMultiResponse(result []interface{}) MultiResponse {
-	jresponse := MultiResponse{}
-
-	for i, ob := range result {
-		switch ob.(type) {
-		case wordnik.Related:
-			jresponse.Synonyms = result[i].(wordnik.Related).Words
-		case wordnikDefinitionResult:
-			jresponse.Definitions = result[i].(wordnikDefinitionResult).mapTexts()
-		case wordnikExamplesResult:
-			jresponse.Examples = result[i].(wordnikExamplesResult).mapTexts()
-		case googletranslate.Phrase:
-			jresponse.Translation = result[i].(googletranslate.Phrase).Translation
-			jresponse.ExtraTranslations = result[i].(googletranslate.Phrase).ExtraMeanings
-		}
+	result := make([]string, 0)
+	for _, phrase := range defs {
+		result = append(result, phrase.Text)
 	}
 
-	return jresponse
+	res.Definitions = result
+	return
 }
 
-func toSTDOUT(jresponse MultiResponse) (prettyOutput string) {
-	prettyOutput += fmt.Sprintf("Translation:\n%s%s\n%s%s", termIndentation, jresponse.Translation, termIndentation, strings.Join(jresponse.ExtraTranslations, ", "))
-	prettyOutput += fmt.Sprintf("\nDefinition:\n%s%s", termIndentation, strings.Join(jresponse.Definitions, "\n"+termIndentation))
-	prettyOutput += fmt.Sprintf("\nRelated:\n%s%v", termIndentation, strings.Join(jresponse.Synonyms, ", "))
-	prettyOutput += fmt.Sprintf("\nExamples:\n%s", strings.Join(jresponse.Examples, "\n"))
+func (wordnikHead synonymsHead) Bite(res *HydraResponse) (err error) {
+	related, err := wordnik.FetchRelated(wordnikHead.config, wordnikHead.word)
+	if err != nil {
+		return
+	}
+
+	res.Synonyms = related.Words
+	return
+}
+
+func (wordnikHead examplesHead) Bite(res *HydraResponse) (err error) {
+	examples, err := wordnik.FetchExamples(wordnikHead.config, wordnikHead.word)
+	if err != nil {
+		return
+	}
+
+	result := make([]string, 0)
+	for _, example := range examples {
+		result = append(result, example.Text)
+	}
+
+	res.Examples = result
+	return
+}
+
+func (mr HydraResponse) ToJSON() string {
+	json, _ := json.Marshal(mr)
+	return string(json)
+}
+
+func (mr HydraResponse) ToStdOut() (prettyOutput string) {
+	indentation := "   "
+
+	prettyOutput += fmt.Sprintf("Translation:\n%s%s\n%s%s", indentation, mr.Translation, indentation, strings.Join(mr.ExtraTranslations, ", "))
+	prettyOutput += fmt.Sprintf("\nDefinition:\n%s%s", indentation, strings.Join(mr.Definitions, "\n"+indentation))
+	prettyOutput += fmt.Sprintf("\nRelated:\n%s%v", indentation, strings.Join(mr.Synonyms, ", "))
+	prettyOutput += fmt.Sprintf("\nExamples:\n%s", strings.Join(mr.Examples, "\n"))
 
 	return
 }

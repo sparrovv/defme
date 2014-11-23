@@ -1,14 +1,14 @@
 # defme
 
-Get a word definition, synonyms, examples from `Wordnik API` and translation from https://github.com/sparrovv/gotr
+Returns a word definition, synonyms, examples from `Wordnik API` and translation from https://github.com/sparrovv/gotr
 
 ### Prerequisites:
 
-This program relies heavily on `wording.com` API. To use it, you need a wordnik key set in the environment variables. 
-(sign in and get it on [developer.wordnik.com](http://developer.wordnik.com/))
+This program relies heavily on `wordnik.com` API. To use it, you need a wordnik key set in the environment.
+(Sign in and get it on [developer.wordnik.com](http://developer.wordnik.com/))
 
 ```sh
-  export WORDNIK_API_KEY='xxxxxxxxxx'
+export WORDNIK_API_KEY='xxxxxxxxxx'
 ```
 
 ### CLI
@@ -43,4 +43,4 @@ curl "localhost:9292?lang=pl&phrase=scry"
 
 1. Better exception handling and error reporting
 1. Add performance tests
-1. Add caching layer
+1. Add caching

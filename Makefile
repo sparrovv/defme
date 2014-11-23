@@ -1,5 +1,3 @@
-VERSION = $(shell head -1 VERSION)
-
 all: build
 
 deps:

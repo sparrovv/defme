@@ -14,7 +14,7 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "defme"
-	app.Usage = "Get definion, transalation, synonyms and the usage of the word"
+	app.Usage = "Get definion, transalation, synonyms and exampes of a word"
 	app.Commands = []cli.Command{
 		{
 			Name:      "server",
@@ -41,7 +41,7 @@ func main() {
 		{
 			Name:      "define",
 			ShortName: "d",
-			Usage:     "Type a word you want the definition and translation for",
+			Usage:     "define a word",
 			Flags: []cli.Flag{
 				cli.StringFlag{"json, j", "", "Return response in json"},
 				cli.StringFlag{"to, t", "", "Translate to your native language"},
@@ -55,16 +55,15 @@ func main() {
 				}
 
 				translateTo := c.String("to")
-
 				toJSON := false
 				if len(c.String("json")) != 0 {
 					toJSON = true
 				}
 
-				term := strings.Join(c.Args(), " ")
+				word := strings.Join(c.Args(), " ")
+				validateInput(word)
 
-				validateInput(term)
-				fmt.Println(hydra.BuildResponse(term, config, translateTo, toJSON))
+				fmt.Println(hydra.BuildResponse(word, config, translateTo, toJSON))
 			},
 		},
 	}

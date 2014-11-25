@@ -136,7 +136,7 @@ func (mr HydraResponse) ToStdOut() (prettyOutput string) {
 	prettyOutput += fmt.Sprintf("Translation:\n%s%s\n%s%s", indentation, mr.Translation, indentation, strings.Join(mr.ExtraTranslations, ", "))
 	prettyOutput += fmt.Sprintf("\nDefinition:\n%s%s", indentation, strings.Join(mr.Definitions, "\n"+indentation))
 	prettyOutput += fmt.Sprintf("\nRelated:\n%s%v", indentation, strings.Join(mr.Synonyms, ", "))
-	prettyOutput += fmt.Sprintf("\nExamples:\n%s", strings.Join(mr.Examples, "\n"))
+	prettyOutput += fmt.Sprintf("\nExamples:\n%s%s", indentation, strings.Join(mr.Examples, "\n"+indentation))
 
 	return
 }

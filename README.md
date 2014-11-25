@@ -41,6 +41,7 @@ curl "localhost:9292?to=pl&word=scry"
 
 ### TODOS:
 
+1. Wordnik - introduce WordnikClient - rm configuration
 1. Better exception handling and error reporting
 1. Add performance tests
 1. Add caching

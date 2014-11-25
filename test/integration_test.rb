@@ -47,7 +47,7 @@ class TestDefme < Minitest::Test
 
   def test_server_works_1
     response = _load_response("level up")
-    assert_equal("poziom wyżej", response['translation'] )
+    assert(["poziom wyżej", "poziom w górę"].include?(response['translation']))
     assert_equal(
       ["To progress to the next level of player character stats and abilities, often by acquiring experience points in role-playing games."],
       response['definitions']

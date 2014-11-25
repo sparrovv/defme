@@ -26,7 +26,7 @@ func BuildResponse(word string, config configuration.Config, translateTo string,
 	hydraResponse := HydraResponse{}
 	wordnikAPI := WordinkAPI{word, config}
 	heads := []hydraHead{
-		defHead{&wordnikAPI},
+		definitionsHead{&wordnikAPI},
 		examplesHead{&wordnikAPI},
 		synonymsHead{&wordnikAPI},
 		translationHead{translateTo, word},
@@ -81,11 +81,11 @@ type WordinkAPI struct {
 	config configuration.Config
 }
 
-type defHead struct{ *WordinkAPI }
+type definitionsHead struct{ *WordinkAPI }
 type examplesHead struct{ *WordinkAPI }
 type synonymsHead struct{ *WordinkAPI }
 
-func (wordnikHead defHead) Bite(res *HydraResponse) (err error) {
+func (wordnikHead definitionsHead) Bite(res *HydraResponse) (err error) {
 	defs, err := wordnik.FetchDef(wordnikHead.config, wordnikHead.word)
 	if err != nil {
 		return

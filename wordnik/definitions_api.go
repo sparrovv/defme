@@ -12,7 +12,7 @@ type Phrase struct {
 	Text string `json:"text"`
 }
 
-func (c *Client) FetchDef(word string) (result []Phrase, err error) {
+func (c *Client) GetDefinitions(word string) (result []Phrase, err error) {
 	url := fmt.Sprintf("%s/%s/%s/definitions?api_key=%s", c.Host, "v4/word.json", strings.ToLower(word), c.ApiKey)
 
 	body, err := makeRequest(url)

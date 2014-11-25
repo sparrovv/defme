@@ -86,7 +86,7 @@ type examplesHead struct{ *WordinkAPI }
 type synonymsHead struct{ *WordinkAPI }
 
 func (wordnikHead definitionsHead) Bite(res *HydraResponse) (err error) {
-	defs, err := wordnikHead.client.FetchDef(wordnikHead.word)
+	defs, err := wordnikHead.client.GetDefinitions(wordnikHead.word)
 	if err != nil {
 		return
 	}
@@ -101,7 +101,7 @@ func (wordnikHead definitionsHead) Bite(res *HydraResponse) (err error) {
 }
 
 func (wordnikHead synonymsHead) Bite(res *HydraResponse) (err error) {
-	related, err := wordnikHead.client.FetchRelated(wordnikHead.word)
+	related, err := wordnikHead.client.GetRelated(wordnikHead.word)
 	if err != nil {
 		return
 	}
@@ -111,7 +111,7 @@ func (wordnikHead synonymsHead) Bite(res *HydraResponse) (err error) {
 }
 
 func (wordnikHead examplesHead) Bite(res *HydraResponse) (err error) {
-	examples, err := wordnikHead.client.FetchExamples(wordnikHead.word)
+	examples, err := wordnikHead.client.GetExamples(wordnikHead.word)
 	if err != nil {
 		return
 	}

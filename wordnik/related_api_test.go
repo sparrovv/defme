@@ -27,7 +27,7 @@ func TestReleatedWords(t *testing.T) {
 	client := NewClient("myApiKey")
 	client.Host = server.URL
 
-	p, err := client.FetchRelated("TurN up")
+	p, err := client.GetRelated("TurN up")
 	assert.NoError(t, err)
 	assert.Equal(t, len(p.Words), 4)
 	assert.Equal(t, p.Words[0], "mitigate")
@@ -40,7 +40,7 @@ func TestReleatedWordsWhenEmptyResponse(t *testing.T) {
 	client := NewClient("myApiKey")
 	client.Host = server.URL
 
-	p, err := client.FetchRelated("TurN up")
+	p, err := client.GetRelated("TurN up")
 	assert.NoError(t, err)
 	assert.Equal(t, len(p.Words), 0)
 }

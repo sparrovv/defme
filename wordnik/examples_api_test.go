@@ -53,14 +53,14 @@ func newTestServer(json string) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(fetchHandler))
 }
 
-func TestFetchExamples(t *testing.T) {
+func TestGetExamples(t *testing.T) {
 	server := newTestServer(examplesJSON)
 	defer server.Close()
 
 	client := NewClient("myApiKey")
 	client.Host = server.URL
 
-	examples, _ := client.FetchExamples("scry")
+	examples, _ := client.GetExamples("scry")
 
 	assert.Equal(t, len(examples), 2)
 

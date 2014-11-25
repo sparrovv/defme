@@ -81,14 +81,14 @@ var fetchHandler = func(rw http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(rw, definitionsJson)
 }
 
-func TestFetchDef(t *testing.T) {
+func TestGetDefinitions(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(fetchHandler))
 	defer server.Close()
 
 	client := NewClient("myApiKey")
 	client.Host = server.URL
 
-	definitions, err := client.FetchDef("TurN up")
+	definitions, err := client.GetDefinitions("TurN up")
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(definitions), 2)

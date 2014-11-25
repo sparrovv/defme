@@ -28,8 +28,7 @@ func main() {
 				if len(port) == 0 {
 					port = "8080"
 				}
-				client := wordnikClient()
-				hydra.Serve(port, &client)
+				hydra.Serve(port, wordnikClient())
 			},
 		},
 		{
@@ -42,8 +41,6 @@ func main() {
 			},
 
 			Action: func(c *cli.Context) {
-				client := wordnikClient()
-
 				translateTo := c.String("to")
 				toJSON := false
 				if len(c.String("json")) != 0 {
@@ -53,7 +50,7 @@ func main() {
 				word := strings.Join(c.Args(), " ")
 				validateInput(word)
 
-				fmt.Println(hydra.BuildResponse(word, &client, translateTo, toJSON))
+				fmt.Println(hydra.BuildResponse(word, wordnikClient(), translateTo, toJSON))
 			},
 		},
 	}
@@ -61,7 +58,7 @@ func main() {
 	app.Run(os.Args)
 }
 
-func wordnikClient() wordnik.Client {
+func wordnikClient() *wordnik.Client {
 	wordnikApiKey := os.Getenv("WORDNIK_API_KEY")
 
 	if len(wordnikApiKey) == 0 {

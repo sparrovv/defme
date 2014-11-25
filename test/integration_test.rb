@@ -19,6 +19,8 @@ class DefMe
 
   def self.httpd
     @pid = Process.spawn("./test/defme server --port #{port} >> /tmp/defme_test.log 2>&1 &")
+    # give it some time to boot
+    sleep(0.1)
   end
 
   def self.remove_binary

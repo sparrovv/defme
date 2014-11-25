@@ -7,7 +7,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/sparrovv/defme/configuration"
 	"github.com/sparrovv/defme/wordnik"
 	"github.com/sparrovv/gotr/googletranslate"
 )
@@ -22,9 +21,10 @@ type HydraResponse struct {
 }
 
 // Returns JSON or formatted text from all the services
-func BuildResponse(word string, config configuration.Config, translateTo string, toJSON bool) (formattedResponse string) {
+func BuildResponse(word string, wClient *wordnik.Client, translateTo string, toJSON bool) (formattedResponse string) {
 	hydraResponse := HydraResponse{}
-	wordnikAPI := WordinkAPI{word, config}
+	wordnikAPI := WordinkAPI{wClient, word}
+
 	heads := []hydraHead{
 		definitionsHead{&wordnikAPI},
 		examplesHead{&wordnikAPI},
@@ -77,8 +77,8 @@ func (gt translationHead) Bite(res *HydraResponse) (err error) {
 }
 
 type WordinkAPI struct {
+	client *wordnik.Client
 	word   string
-	config configuration.Config
 }
 
 type definitionsHead struct{ *WordinkAPI }
@@ -86,7 +86,7 @@ type examplesHead struct{ *WordinkAPI }
 type synonymsHead struct{ *WordinkAPI }
 
 func (wordnikHead definitionsHead) Bite(res *HydraResponse) (err error) {
-	defs, err := wordnik.FetchDef(wordnikHead.config, wordnikHead.word)
+	defs, err := wordnikHead.client.FetchDef(wordnikHead.word)
 	if err != nil {
 		return
 	}
@@ -101,7 +101,7 @@ func (wordnikHead definitionsHead) Bite(res *HydraResponse) (err error) {
 }
 
 func (wordnikHead synonymsHead) Bite(res *HydraResponse) (err error) {
-	related, err := wordnik.FetchRelated(wordnikHead.config, wordnikHead.word)
+	related, err := wordnikHead.client.FetchRelated(wordnikHead.word)
 	if err != nil {
 		return
 	}
@@ -111,7 +111,7 @@ func (wordnikHead synonymsHead) Bite(res *HydraResponse) (err error) {
 }
 
 func (wordnikHead examplesHead) Bite(res *HydraResponse) (err error) {
-	examples, err := wordnik.FetchExamples(wordnikHead.config, wordnikHead.word)
+	examples, err := wordnikHead.client.FetchExamples(wordnikHead.word)
 	if err != nil {
 		return
 	}

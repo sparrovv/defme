@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/sparrovv/defme/configuration"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -84,13 +83,12 @@ var fetchHandler = func(rw http.ResponseWriter, r *http.Request) {
 
 func TestFetchDef(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(fetchHandler))
+	defer server.Close()
 
-	config := configuration.Config{
-		WordnikApiKey: "myApiKey",
-		WordnikHost:   server.URL,
-	}
+	client := NewClient("myApiKey")
+	client.Host = server.URL
 
-	definitions, err := FetchDef(config, "TurN up")
+	definitions, err := client.FetchDef("TurN up")
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(definitions), 2)

@@ -5,16 +5,14 @@ import (
 	"fmt"
 
 	"strings"
-
-	"github.com/sparrovv/defme/configuration"
 )
 
 type Related struct {
 	Words []string
 }
 
-func FetchRelated(config configuration.Config, word string) (result Related, err error) {
-	url := fmt.Sprintf("%s/%s/%s/relatedWords?useCanonical=true&relationshipTypes=synonym&limitPerRelationshipType=10&api_key=%s", config.WordnikHost, "v4/word.json", EncodeSpace(strings.ToLower(word)), config.WordnikApiKey)
+func (c *Client) FetchRelated(word string) (result Related, err error) {
+	url := fmt.Sprintf("%s/%s/%s/relatedWords?useCanonical=true&relationshipTypes=synonym&limitPerRelationshipType=10&api_key=%s", c.Host, "v4/word.json", EncodeSpace(strings.ToLower(word)), c.ApiKey)
 
 	body, err := makeRequest(url)
 

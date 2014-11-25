@@ -2,13 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
 	"github.com/codegangsta/cli"
-	"github.com/sparrovv/defme/configuration"
 	"github.com/sparrovv/defme/hydra"
+	"github.com/sparrovv/defme/wordnik"
 )
 
 func main() {
@@ -29,13 +28,8 @@ func main() {
 				if len(port) == 0 {
 					port = "8080"
 				}
-				config, err := configuration.FromEnv()
-				if err != nil {
-					log.Fatal(err)
-					return
-				}
-
-				hydra.Serve(port, config)
+				client := wordnikClient()
+				hydra.Serve(port, &client)
 			},
 		},
 		{
@@ -48,11 +42,7 @@ func main() {
 			},
 
 			Action: func(c *cli.Context) {
-				config, err := configuration.FromEnv()
-				if err != nil {
-					log.Fatal(err)
-					return
-				}
+				client := wordnikClient()
 
 				translateTo := c.String("to")
 				toJSON := false
@@ -63,12 +53,22 @@ func main() {
 				word := strings.Join(c.Args(), " ")
 				validateInput(word)
 
-				fmt.Println(hydra.BuildResponse(word, config, translateTo, toJSON))
+				fmt.Println(hydra.BuildResponse(word, &client, translateTo, toJSON))
 			},
 		},
 	}
 
 	app.Run(os.Args)
+}
+
+func wordnikClient() wordnik.Client {
+	wordnikApiKey := os.Getenv("WORDNIK_API_KEY")
+
+	if len(wordnikApiKey) == 0 {
+		panic("WORDNIK_API_KEY is not set")
+	}
+
+	return wordnik.NewClient(wordnikApiKey)
 }
 
 func validateInput(input string) {

@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/sparrovv/defme/configuration"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -58,12 +57,10 @@ func TestFetchExamples(t *testing.T) {
 	server := newTestServer(examplesJSON)
 	defer server.Close()
 
-	config := configuration.Config{
-		WordnikApiKey: "myApiKey",
-		WordnikHost:   server.URL,
-	}
+	client := NewClient("myApiKey")
+	client.Host = server.URL
 
-	examples, _ := FetchExamples(config, "scry")
+	examples, _ := client.FetchExamples("scry")
 
 	assert.Equal(t, len(examples), 2)
 

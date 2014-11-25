@@ -5,16 +5,14 @@ import (
 	"fmt"
 
 	"strings"
-
-	"github.com/sparrovv/defme/configuration"
 )
 
 type Example struct {
 	Text string `json:"text"`
 }
 
-func FetchExamples(config configuration.Config, word string) (result []Example, err error) {
-	url := fmt.Sprintf("%s/%s/%s/examples?api_key=%s", config.WordnikHost, "v4/word.json", strings.ToLower(word), config.WordnikApiKey)
+func (c *Client) FetchExamples(word string) (result []Example, err error) {
+	url := fmt.Sprintf("%s/%s/%s/examples?api_key=%s", c.Host, "v4/word.json", strings.ToLower(word), c.ApiKey)
 
 	body, err := makeRequest(url)
 

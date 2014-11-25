@@ -6,14 +6,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/sparrovv/defme/configuration"
+	"github.com/sparrovv/defme/wordnik"
 )
 
-var config configuration.Config
+var wordnikClient *wordnik.Client
 
-func Serve(port string, wordinkConfig configuration.Config) {
+func Serve(port string, wClient *wordnik.Client) {
 	log.Println("start server on port " + port)
-	config = wordinkConfig
+	wordnikClient = wClient
 
 	http.HandleFunc("/", translationHandler)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
@@ -28,7 +28,7 @@ func translationHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: implement:
 	// err - timeout - should not be more than 5s
 	// err - network
-	formattedResponse := BuildResponse(word, config, translateTo, returnJSON)
+	formattedResponse := BuildResponse(word, wordnikClient, translateTo, returnJSON)
 
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, formattedResponse)
